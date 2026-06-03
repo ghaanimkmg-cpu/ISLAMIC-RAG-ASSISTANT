@@ -121,7 +121,7 @@ Source passages:
 Answer:
 """
     try:
-        model = genai.GenerativeModel("gemini-2.5-pro")
+        model = genai.GenerativeModel("gemini-3.1-pro-preview")
         response = model.generate_content(prompt)
         return response.text
     except Exception as e:
