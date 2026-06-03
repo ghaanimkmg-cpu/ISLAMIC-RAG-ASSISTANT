@@ -6,6 +6,7 @@ from pydantic import BaseModel
 import chromadb
 from dotenv import load_dotenv
 import google.generativeai as genai
+import time
 
 load_dotenv()
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
@@ -34,17 +35,13 @@ app.add_middleware(
 class QueryRequest(BaseModel):
     question: str
 
-def chunk_text(text: str, chunk_size: int = 250, overlap: int = 30):
-    words = text.split()
+def chunk_text(text: str):
+    max_chars = int(os.getenv("MAX_CHARS_PER_CHUNK", 1200))
     chunks = []
-    
     start = 0
-    while start < len(words):
-        end = start + chunk_size
-        chunk = " ".join(words[start:end])
-        chunks.append(chunk)
-        start += chunk_size - overlap
-        
+    while start < len(text):
+        chunks.append(text[start:start+max_chars])
+        start += max_chars - 100  # overlap of 100 characters
     return chunks
 
 def generate_embeddings(chunks: list[str]):
@@ -67,7 +64,8 @@ def store_chunks(chunks: list[str], embeddings: list[list[float]], filename: str
         metadatas=metadatas
     )
 
-def retrieve_relevant_chunks(question: str, top_k: int = 3):
+def retrieve_relevant_chunks(question: str):
+    top_k = int(os.getenv("TOP_K", 3))
     count = collection.count()
     if count == 0:
         return []
@@ -97,11 +95,17 @@ def retrieve_relevant_chunks(question: str, top_k: int = 3):
 
 def generate_llm_answer(question: str, sources: list[dict]):
     if not GEMINI_API_KEY or GEMINI_API_KEY == "your_real_gemini_api_key_here":
-        return "Gemini API key is missing. Please add a valid GEMINI_API_KEY to your .env file."
+        return "Gemini API key is missing. Please add a valid GEMINI_API_KEY to your .env file.", "error", "auth"
 
-    context = "\n\n".join(
-        [f"Source {source['source_number']}: {source['text']}" for source in sources]
-    )
+    MAX_CHARS_PER_CHUNK = int(os.getenv("MAX_CHARS_PER_CHUNK", 1200))
+    context_passages = []
+    for source in sources:
+        text = source['text']
+        if len(text) > MAX_CHARS_PER_CHUNK:
+            text = text[:MAX_CHARS_PER_CHUNK]
+        context_passages.append(f"Source {source['source_number']}: {text}")
+
+    context = "\n\n".join(context_passages)
 
     prompt = f"""
 You are Raya, an Islamic knowledge assistant for ZaryahPlus.
@@ -120,12 +124,23 @@ Source passages:
 
 Answer:
 """
-    try:
-        model = genai.GenerativeModel("gemini-3.1-pro-preview")
-        response = model.generate_content(prompt)
-        return response.text
-    except Exception as e:
-        return f"Error calling Gemini API: {str(e)}"
+    model_name = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
+
+    for attempt in range(3):
+        try:
+            model = genai.GenerativeModel(model_name)
+            response = model.generate_content(prompt)
+            return response.text, "success", None
+        except Exception as e:
+            error_str = str(e).lower()
+            if "429" in error_str or "quota" in error_str or "rate limit" in error_str or "resource_exhausted" in error_str:
+                if attempt < 2:
+                    time.sleep(4)
+                    continue
+                return "Gemini API quota exceeded. Please try again later, use a lighter model, or enable billing in Google AI Studio.", "error", "quota"
+            return f"Error calling Gemini API: {str(e)}", "error", "api"
+            
+    return "Error: Failed to generate answer after multiple retries.", "error", "retry_failed"
 
 @app.get("/")
 def home():
@@ -148,7 +163,7 @@ async def upload_file(file: UploadFile = File(...)):
     total_word_count = len(words)
     
     # Chunking
-    chunks = chunk_text(text, chunk_size=250, overlap=30)
+    chunks = chunk_text(text)
     
     # Generating embeddings
     embeddings = generate_embeddings(chunks)
@@ -188,6 +203,7 @@ def query_text(request: QueryRequest):
     if not sources:
         return {
             "answer": "I could not find relevant information about this in the uploaded text.",
+            "status": "success",
             "sources": []
         }
         
@@ -195,13 +211,16 @@ def query_text(request: QueryRequest):
     if best_distance is not None and best_distance > RELEVANCE_DISTANCE_THRESHOLD:
         return {
             "answer": "I could not find relevant information about this in the uploaded text.",
+            "status": "success",
             "sources": sources
         }
 
-    answer = generate_llm_answer(request.question, sources)
+    answer, status, error_type = generate_llm_answer(request.question, sources)
 
     return {
         "question": request.question,
         "answer": answer,
-        "sources": sources
+        "sources": sources,
+        "status": status,
+        "error_type": error_type
     }
