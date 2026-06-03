@@ -1,5 +1,114 @@
 'use strict';
 
+/* ── BACKGROUND PARTICLE ANIMATION ── */
+(function initParticles() {
+    const canvas = document.getElementById('bg-canvas');
+    if (!canvas) return;
+
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        canvas.style.display = 'none';
+        return;
+    }
+
+    const ctx = canvas.getContext('2d');
+    let W, H;
+    const GOLD   = [201, 168, 76];
+    const SILVER = [210, 200, 185];
+    const PARTICLE_COUNT = 80;
+    let particles = [];
+
+    function resize() {
+        W = canvas.width  = window.innerWidth;
+        H = canvas.height = window.innerHeight;
+    }
+
+    function rand(min, max) { return Math.random() * (max - min) + min; }
+
+    function makeParticle(startAtBottom = false) {
+        const isGold = Math.random() < 0.45;
+        const col = isGold ? GOLD : SILVER;
+        return {
+            x:     rand(0, W),
+            y:     startAtBottom ? rand(H * 0.5, H + 10) : rand(0, H),
+            r:     rand(0.8, 2.6),
+            vy:    -rand(0.15, 0.45),
+            phase: rand(0, Math.PI * 2),
+            freq:  rand(0.003, 0.009),
+            amp:   rand(12, 40),
+            baseAlpha: rand(0.3, 0.65),
+            pulse:      rand(0, Math.PI * 2),
+            pulseSpeed: rand(0.004, 0.012),
+            col,
+        };
+    }
+
+    function init() {
+        resize();
+        particles = Array.from({ length: PARTICLE_COUNT }, () => makeParticle(false));
+    }
+
+    let frame = 0;
+    function draw() {
+        ctx.clearRect(0, 0, W, H);
+        frame++;
+
+        // Draw connecting lines between nearby particles
+        for (let i = 0; i < particles.length; i++) {
+            for (let j = i + 1; j < particles.length; j++) {
+                const dx = particles[i].x - particles[j].x;
+                const dy = particles[i].y - particles[j].y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                if (dist < 100) {
+                    const lineAlpha = (1 - dist / 100) * 0.12;
+                    ctx.beginPath();
+                    ctx.moveTo(particles[i].x, particles[i].y);
+                    ctx.lineTo(particles[j].x, particles[j].y);
+                    ctx.strokeStyle = `rgba(201,168,76,${lineAlpha.toFixed(3)})`;
+                    ctx.lineWidth = 0.5;
+                    ctx.stroke();
+                }
+            }
+        }
+
+        // Draw particles
+        particles.forEach(p => {
+            p.x += Math.sin(frame * p.freq + p.phase) * 0.3;
+            p.y += p.vy;
+
+            const pulse = Math.sin(frame * p.pulseSpeed + p.pulse) * 0.5 + 0.5;
+            const alpha = p.baseAlpha * (0.55 + pulse * 0.45);
+
+            if (p.y < -6) {
+                Object.assign(p, makeParticle(true));
+                p.y = H + 4;
+            }
+
+            // Glow halo
+            const grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r * 3.5);
+            grad.addColorStop(0,   `rgba(${p.col},${(alpha * 0.9).toFixed(3)})`);
+            grad.addColorStop(0.4, `rgba(${p.col},${(alpha * 0.4).toFixed(3)})`);
+            grad.addColorStop(1,   `rgba(${p.col},0)`);
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.r * 3.5, 0, Math.PI * 2);
+            ctx.fillStyle = grad;
+            ctx.fill();
+
+            // Solid core
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(${p.col},${alpha.toFixed(3)})`;
+            ctx.fill();
+        });
+
+        requestAnimationFrame(draw);
+    }
+
+    window.addEventListener('resize', init);
+    init();
+    draw();
+})();
+
+
 const BASE = 'http://127.0.0.1:8001';
 
 /* ── DOM ── */
