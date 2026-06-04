@@ -1,5 +1,21 @@
 # ZaryahPlus Islamic Knowledge Assistant — RAG Prototype
 
+## Project Screenshots
+
+<p align="center">
+  <img src="screenshots/home-page.png" width="800" alt="Home Page">
+</p>
+
+<p align="center">
+  <img src="screenshots/Indexing-askingraya.png" width="800" alt="Indexing and Asking Raya">
+</p>
+
+<p align="center">
+  <img src="screenshots/answer.png" width="800" alt="Answer">
+</p>
+
+---
+
 ## Description
 A plain HTML/CSS/JS + FastAPI RAG prototype where users upload Islamic .txt texts and ask questions. The system retrieves relevant passages using embeddings and ChromaDB, then Gemini answers only from the retrieved passages.
 
