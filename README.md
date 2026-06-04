@@ -1,13 +1,31 @@
-# ZaryahPlus Islamic Knowledge Assistant — RAG Prototype
+<p align="center">
+  <img src="screenshots/home-page.png" width="900" alt="Project Banner">
+</p>
 
-## Project Screenshots
+<h1 align="center">Islamic RAG Assistant</h1>
+
+<p align="center">
+  A smart AI-powered Islamic knowledge assistant built with strict RAG flow, Gemini API, and clean retrieval logic.
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Status-Completed-brightgreen" alt="Status">
+  <img src="https://img.shields.io/badge/AI-Gemini-orange" alt="AI">
+  <img src="https://img.shields.io/badge/RAG-Enabled-purple" alt="RAG">
+  <img src="https://img.shields.io/badge/Backend-FastAPI-green" alt="Backend">
+  <img src="https://img.shields.io/badge/Python-3.x-blue" alt="Python">
+</p>
+
+<br>
+
+## Project Preview
 
 <p align="center">
   <img src="screenshots/home-page.png" width="800" alt="Home Page">
 </p>
 
 <p align="center">
-  <img src="screenshots/Indexing-askingraya.png" width="800" alt="Indexing and Asking Raya">
+  <img src="screenshots/indexing-askingraya.png" width="800" alt="Indexing and Asking Raya">
 </p>
 
 <p align="center">
@@ -16,30 +34,48 @@
 
 ---
 
-## Description
-A plain HTML/CSS/JS + FastAPI RAG prototype where users upload Islamic .txt texts and ask questions. The system retrieves relevant passages using embeddings and ChromaDB, then Gemini answers only from the retrieved passages.
+## 🌟 Key Features
+- 🤖 **AI-powered Islamic question answering**
+- 🔄 **Strict RAG retrieval flow**
+- 📚 **Large Islamic knowledge base support**
+- 🧠 **Gemini API integration**
+- 📏 **Context size limiting**
+- 🛡️ **Quota-safe error handling**
+- 🎨 **Clean frontend and backend separation**
 
-## Tech Stack
-- FastAPI
-- Python
-- sentence-transformers
-- all-MiniLM-L6-v2
-- ChromaDB
-- Gemini API
-- HTML/CSS/JavaScript
-- Fetch API
+---
 
-## Features
-- Upload .txt Islamic text
-- Automatic chunking
-- Embedding generation
-- Local vector storage with ChromaDB
-- Semantic retrieval
-- Gemini answer generation
-- Strict answer-only-from-source prompt
-- Source passages shown with answers
-- Rejects unrelated questions
-- Premium frontend UI
+## 💡 Why This Project Matters
+
+Finding reliable, context-specific answers from vast Islamic texts can be challenging. General AI models often hallucinate or blend unrelated traditions. This project provides a transparent, evidence-based approach by strictly grounding its answers in user-uploaded texts. It's built not just as a tool, but as a robust demonstration of building safe and specialized RAG architectures for sensitive knowledge domains.
+
+---
+
+## 🛠️ Tech Stack
+
+<p>
+  <img src="https://img.shields.io/badge/Frontend-HTML/CSS/JS-E34F26?style=flat&logo=html5" alt="Frontend">
+  <img src="https://img.shields.io/badge/Backend-FastAPI-009688?style=flat&logo=fastapi&logoColor=white" alt="FastAPI">
+  <img src="https://img.shields.io/badge/Database-ChromaDB-FF6F00?style=flat" alt="ChromaDB">
+  <img src="https://img.shields.io/badge/AI-Gemini_API-8E75B2?style=flat" alt="Gemini">
+  <img src="https://img.shields.io/badge/Embeddings-Sentence_Transformers-FF9900?style=flat" alt="Embeddings">
+</p>
+
+---
+
+## ⚙️ How It Works
+
+**User Question** <br>
+↓ <br>
+**Relevant Chunk Retrieval** *(via ChromaDB & embeddings)* <br>
+↓ <br>
+**Context Limiting** <br>
+↓ <br>
+**Gemini Answer Generation** <br>
+↓ <br>
+**Clean Response in UI**
+
+---
 
 ## Setup Instructions (Clean Machine)
 
