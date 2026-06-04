@@ -5,3 +5,7 @@ __pycache__/
 backend/chroma_db/
 venv/
 .venv/
+
+# IDE / Editor specific (machine-local paths)
+.vscode/
+pyrightconfig.json
